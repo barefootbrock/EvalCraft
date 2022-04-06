@@ -57,5 +57,5 @@ class KP20KDoc(Document):
         pass
     
     def key_words(self):
-        kwds = [w.strip() for w in self.json['keyword'].split(';')]
+        kwds = [w.strip() for w in self.json['keywords'].split(';')]
         return "\n".join(kwds)
