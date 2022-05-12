@@ -5,6 +5,7 @@ import random
 import datetime
 import time
 import networkx as nx
+import matplotlib.pyplot as plt
 
 import rouge_stats as rs
 import key_stats as ks
@@ -25,11 +26,11 @@ from dataset.kp20k import KP20K
 # number of keyphrases and summary sentences
 # wk,sk=6,6
 # wk,sk=10,9
-wk, sk = 10, 6  # best
-# wk, sk = 10, 8
+wk, sk = 0, 7  # best for Textstar summarization
+# wk, sk = 10, 0 # best for Textstar key phrase extraction
 
 # max number of documents to process (None to process all)
-max_docs = 4000 #Final document to end on (docs_to_skip + number of docs to run)
+max_docs = None #Final document to end on (docs_to_skip + number of docs to run). Use None to run all
 docs_to_skip = 0
 
 # delete previously generated keys+abs
@@ -48,20 +49,19 @@ save_out = True
 # SYSTEM = StanzaGraphs(
 #   stanza_path="/Users/brockfamily/Documents/UNT/StanzaGraphs/"
 # )
-# SYSTEM = Textstar(
-#     stanza_path="/Users/brockfamily/Documents/UNT/StanzaGraphs/",
-#     ranker=nx.degree_centrality,
-#     trim=70
-# )
-SYSTEM = DocTalk(
-  doctalk_path="/Users/brockfamily/Documents/UNT/DocTalk/"
+SYSTEM = Textstar(
+    stanza_path="/Users/brockfamily/Documents/UNT/StanzaGraphs/",
+    ranker=nx.degree_centrality
 )
+# SYSTEM = DocTalk(
+#   doctalk_path="/Users/brockfamily/Documents/UNT/DocTalk/"
+# )
 
 # choice of dataset
 # DATASET = Karpivin2009(
 #   count=max_docs,
-#   include_abs=False,
-#   direct=False
+#   include_abs=True,
+#   direct=True
 # )
 # DATASET = CnnBig(
 #   count=max_docs
@@ -70,18 +70,18 @@ SYSTEM = DocTalk(
 #   count=max_docs,
 #   include_abs=False
 # )
-# DATASET = Arxiv(
-#     count=max_docs,
-#     dataset="test"
-# )
+DATASET = Arxiv(
+    count=max_docs,
+    dataset="test"
+)
 # DATASET = Pubmed(
 #   count=max_docs,
 #   dataset="test"
 # )
-DATASET = KP20K(
-  count=max_docs,
-  dataset="test"
-)
+# DATASET = KP20K(
+#   count=max_docs,
+#   dataset="test"
+# )
 
 # SETTINGS ------------------------------------------------
 
@@ -195,11 +195,17 @@ def evaluate(system, dataset, stop_on_error=True, save_out=True):
 
     startTime = time.time()
 
+    nSingleWords = 0
+    nCompounds = 0
+    documentLens = []
+    runTimes = []
+
     for i, document in enumerate(dataset):
         if i < docs_to_skip:
             continue
         try:
             # Try to summarize the document
+            docStartTime = time.time()
             if quiet:
                 with Quiet():
                     keys, exabs = system.process_text(
@@ -218,6 +224,9 @@ def evaluate(system, dataset, stop_on_error=True, save_out=True):
                     sum_len=sk,
                     kwds_len=wk
                 )
+            
+            runTimes.append(time.time() - docStartTime)
+            documentLens.append(len(document.as_text()))
 
             key_words_str = "\n".join(keys).replace('-', ' ')
             summary_str = "\n".join(exabs).replace('-', ' ')
@@ -247,6 +256,9 @@ def evaluate(system, dataset, stop_on_error=True, save_out=True):
                 keys_rouge1[0].append(d['p'][0])
                 keys_rouge1[1].append(d['r'][0])
                 keys_rouge1[2].append(d['f'][0])
+
+                nSingleWords += sum(len(k.split(" ")) == 1 for k in keys)
+                nCompounds += sum(len(k.split(" ")) > 1 for k in keys)
 
             if dataset.has_sums:
                 gold_summary = document.summary()
@@ -337,6 +349,18 @@ def evaluate(system, dataset, stop_on_error=True, save_out=True):
         print("ABS ROUGE 2 : --                  --                  --")
         print("ABS ROUGE l : --                  --                  --")
         print("ABS ROUGE w : --                  --                  --")
+    
+    if dataset.has_kwds:
+        print("\n%.1f%% of key words are compounds" % (nCompounds / (nCompounds + nSingleWords) * 100))
+        plt.scatter(documentLens, keys_rouge1[2])
+        plt.show()
+
+    if dataset.has_sums:
+        plt.scatter(documentLens, abs_rouge1[2])
+        plt.show()
+
+    plt.scatter(documentLens, runTimes)
+    plt.show()
 
 
 if __name__ == '__main__':
