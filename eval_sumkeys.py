@@ -20,14 +20,16 @@ from dataset.nus import NUS
 from dataset.arxiv import Arxiv
 from dataset.pubmed import Pubmed
 from dataset.kp20k import KP20K
+from dataset.semeval2010 import SemEval2010
+
 
 # SETTINGS ------------------------------------------------
 
 # number of keyphrases and summary sentences
 # wk,sk=6,6
 # wk,sk=10,9
-wk, sk = 0, 7  # best for Textstar summarization
-# wk, sk = 10, 0 # best for Textstar key phrase extraction
+# wk, sk = 0, 7  # best for Textstar summarization
+wk, sk = 10, 0 # best for Textstar key phrase extraction
 
 # max number of documents to process (None to process all)
 max_docs = None #Final document to end on (docs_to_skip + number of docs to run). Use None to run all
@@ -70,17 +72,21 @@ SYSTEM = Textstar(
 #   count=max_docs,
 #   include_abs=False
 # )
-DATASET = Arxiv(
-    count=max_docs,
-    dataset="test"
-)
+# DATASET = Arxiv(
+#     count=max_docs,
+#     dataset="test"
+# )
 # DATASET = Pubmed(
 #   count=max_docs,
 #   dataset="test"
 # )
-# DATASET = KP20K(
+DATASET = KP20K(
+  count=max_docs,
+  dataset="test"
+)
+# DATASET = SemEval2010(
 #   count=max_docs,
-#   dataset="test"
+#   include_abs=False
 # )
 
 # SETTINGS ------------------------------------------------
