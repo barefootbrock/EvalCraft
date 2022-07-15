@@ -13,6 +13,8 @@ import key_stats as ks
 from systems.textstar import Textstar
 from systems.stanzagraphs import StanzaGraphs
 from systems.doctalk import DocTalk
+from systems.ringrank import Ringrank
+from systems.test import Test
 
 from dataset.Krapivin2009 import Karpivin2009
 from dataset.cnn_big import CnnBig
@@ -21,6 +23,7 @@ from dataset.arxiv import Arxiv
 from dataset.pubmed import Pubmed
 from dataset.kp20k import KP20K
 from dataset.semeval2010 import SemEval2010
+from dataset.inspec import Inspec
 
 
 # SETTINGS ------------------------------------------------
@@ -28,8 +31,8 @@ from dataset.semeval2010 import SemEval2010
 # number of keyphrases and summary sentences
 # wk,sk=6,6
 # wk,sk=10,9
-# wk, sk = 0, 7  # best for Textstar summarization
-wk, sk = 10, 0 # best for Textstar key phrase extraction
+wk, sk = 0, 7  # best for Textstar summarization
+# wk, sk = 5, 0 # best for Textstar key phrase extraction
 
 # max number of documents to process (None to process all)
 max_docs = None #Final document to end on (docs_to_skip + number of docs to run). Use None to run all
@@ -55,8 +58,15 @@ SYSTEM = Textstar(
     stanza_path="/Users/brockfamily/Documents/UNT/StanzaGraphs/",
     ranker=nx.degree_centrality
 )
+# SYSTEM = Ringrank(
+#     stanza_path="/Users/brockfamily/Documents/UNT/StanzaGraphs/",
+#     ranker=nx.degree_centrality
+# )
 # SYSTEM = DocTalk(
 #   doctalk_path="/Users/brockfamily/Documents/UNT/DocTalk/"
+# )
+# SYSTEM = Test(
+#     path="/Users/brockfamily/Documents/UNT/Other NLP Models/"
 # )
 
 # choice of dataset
@@ -80,14 +90,17 @@ SYSTEM = Textstar(
 #   count=max_docs,
 #   dataset="test"
 # )
-DATASET = KP20K(
-  count=max_docs,
-  dataset="test"
-)
+# DATASET = KP20K(
+#   count=max_docs,
+#   dataset="test"
+# )
 # DATASET = SemEval2010(
 #   count=max_docs,
 #   include_abs=False
 # )
+DATASET = Inspec(
+  count=max_docs
+)
 
 # SETTINGS ------------------------------------------------
 
@@ -359,14 +372,14 @@ def evaluate(system, dataset, stop_on_error=True, save_out=True):
     if dataset.has_kwds:
         print("\n%.1f%% of key words are compounds" % (nCompounds / (nCompounds + nSingleWords) * 100))
         plt.scatter(documentLens, keys_rouge1[2])
-        plt.show()
+        # plt.show()
 
     if dataset.has_sums:
         plt.scatter(documentLens, abs_rouge1[2])
-        plt.show()
+        # plt.show()
 
     plt.scatter(documentLens, runTimes)
-    plt.show()
+    # plt.show()
 
 
 if __name__ == '__main__':

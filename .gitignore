@@ -24,3 +24,7 @@ dataset/kp20k/train.json
 dataset/kp20k/val.json
 
 dataset/cnn/**
+
+
+dataset/Inspec/docsutf8/*
+dataset/Inspec/keys/*
